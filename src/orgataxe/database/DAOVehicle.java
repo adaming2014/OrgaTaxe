@@ -1,0 +1,254 @@
+package orgataxe.database;
+
+import com.sun.istack.internal.Nullable;
+import orgataxe.connection.GlobalConnection;
+import orgataxe.connection.NoConnectionException;
+import orgataxe.entity.Model;
+import orgataxe.entity.Owner;
+import orgataxe.entity.Type;
+import orgataxe.entity.Vehicle;
+
+import java.security.InvalidParameterException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * Created by INTI0221 on 06/08/2014.
+ */
+public class DAOVehicle extends DAOGeneric<Vehicle> implements IDAOVehicle {
+    private static final String TABLE_NAME = "vehicle";
+    private static final String FIELD_ID = "id";
+    private static final String FIELD_ID_OWNER = "id_owner";
+    private static final String FIELD_ID_MODEL = "id_model";
+    private static final String FIELD_LICENCE = "licence";
+    private static final String FIELD_START_DATE = "start_date";
+
+    private static final String TABLE_OWNER = "owner";
+    private static final String FIELD_OWNER_ID = "id";
+    private static final String FIELD_OWNER_FIRSTNAME = "first_name";
+    private static final String FIELD_OWNER_FAMILYNAME = "family_name";
+    private static final String FIELD_OWNER_ADDRESS = "address";
+
+    private static final String TABLE_MODEL = "model";
+    private static final String FIELD_MODEL_ID = "id";
+    private static final String FIELD_MODEL_WEIGHT = "weight";
+    private static final String FIELD_MODEL_DESIGNATION = "designation";
+
+    private final static String requestGetAll =
+            "SELECT *"
+                    + " FROM " + TABLE_NAME + ", " + TABLE_OWNER + ", " + TABLE_MODEL
+                    + " WHERE " + FIELD_ID_OWNER + " = " + TABLE_OWNER + "." + FIELD_OWNER_ID
+                    + " AND " + FIELD_ID_MODEL + " = " + TABLE_MODEL + "." + FIELD_MODEL_ID;
+
+    private final static String requestGetById =
+            "SELECT *"
+                    + " FROM " + TABLE_NAME + ", " + TABLE_OWNER + ", " + TABLE_MODEL
+                    + " WHERE " + FIELD_ID_OWNER + " = " + TABLE_OWNER + "." + FIELD_OWNER_ID
+                    + " AND " + FIELD_ID_MODEL + " = " + TABLE_MODEL + "." + FIELD_MODEL_ID
+                    + " AND " + FIELD_ID + " = ?";
+
+    private final static String requestCreate =
+            "INSERT INTO " + TABLE_NAME + " (" + FIELD_ID_OWNER + ", " + FIELD_ID_MODEL + ", " + FIELD_LICENCE + ", " + FIELD_START_DATE + ")"
+                    + " VALUES (?, ?, ?, ?)";
+
+    private final static String requestMaxId =
+            "SELECT MAX(" + FIELD_ID + ") FROM " + TABLE_NAME;
+
+    private final static String requestUpdate =
+            "UPDATE " + TABLE_NAME
+                    + " SET " + FIELD_ID_OWNER + " = ?, " + FIELD_ID_MODEL + " = ?, " + FIELD_LICENCE + " = ?, " + FIELD_START_DATE + " = ?"
+                    + " WHERE " + FIELD_ID + " = ?";
+
+    private final static String requestDelete =
+            "DELETE FROM " + TABLE_NAME
+                    + " WHERE " + FIELD_ID + " = ?";
+
+    @Override
+    public List<Vehicle> getAll() {
+        Connection connection = GlobalConnection.getConnection();
+        if (connection == null) {
+            throw new NoConnectionException();
+        }
+
+        List<Vehicle> vehicles = new ArrayList<>();
+
+        PreparedStatement statement;
+        try {
+            statement = connection.prepareStatement(requestGetAll);
+            ResultSet results = statement.executeQuery();
+
+            while (results.next()) {
+                Owner owner = new Owner(Integer.valueOf(results.getInt(FIELD_OWNER_ID)), results.getString(FIELD_OWNER_FIRSTNAME), results.getString(FIELD_OWNER_FAMILYNAME), results.getString(FIELD_OWNER_ADDRESS), null);
+                Model model = new Model(Integer.valueOf(results.getInt(FIELD_MODEL_ID)), results.getInt(FIELD_MODEL_WEIGHT), results.getString(FIELD_MODEL_DESIGNATION));
+                vehicles.add(new Vehicle(Integer.valueOf(results.getInt(FIELD_ID)), results.getString(FIELD_LICENCE), new Date(results.getInt(FIELD_START_DATE) * 1000), owner, Type.LIGHT, model));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+            }
+        }
+
+        return vehicles;
+    }
+
+    @Override
+    public
+    @Nullable
+    Vehicle getById(int id) {
+        Connection connection = GlobalConnection.getConnection();
+        if (connection == null) {
+            throw new NoConnectionException();
+        }
+
+        Vehicle vehicle = null;
+        PreparedStatement statement;
+        try {
+            statement = connection.prepareStatement(requestGetById);
+            statement.setInt(1, id);
+
+            ResultSet results = statement.executeQuery();
+
+            if (results.next()) {
+                Owner owner = new Owner(Integer.valueOf(results.getInt(FIELD_OWNER_ID)), results.getString(FIELD_OWNER_FIRSTNAME), results.getString(FIELD_OWNER_FAMILYNAME), results.getString(FIELD_OWNER_ADDRESS), null);
+                Model model = new Model(Integer.valueOf(results.getInt(FIELD_MODEL_ID)), results.getInt(FIELD_MODEL_WEIGHT), results.getString(FIELD_MODEL_DESIGNATION));
+                vehicle = new Vehicle(Integer.valueOf(results.getInt(FIELD_ID)), results.getString(FIELD_LICENCE), new Date(results.getInt(FIELD_START_DATE) * 1000), owner, Type.LIGHT, model);
+            } else {
+                return null;
+            }
+        } catch (SQLException e) {
+            return null;
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+            }
+        }
+
+        return vehicle;
+    }
+
+    @Override
+    public
+    @Nullable
+    Vehicle create(Vehicle entity) {
+        Connection connection = GlobalConnection.getConnection();
+        if (connection == null) {
+            throw new NoConnectionException();
+        }
+
+        PreparedStatement statement;
+        try {
+            statement = connection.prepareStatement(requestCreate);
+            statement.setInt(1, entity.getOwner().getId());
+            statement.setInt(2, entity.getModel().getId());
+            statement.setString(3, entity.getLicencePlate());
+            statement.setLong(4, entity.getStartDate().toInstant().getEpochSecond());
+
+            int results = statement.executeUpdate();
+            if (results != 1) {
+                return null;
+            }
+
+            statement = connection.prepareStatement(requestMaxId);
+            ResultSet resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                entity.setId(resultSet.getInt(1));
+            } else {
+                return null;
+            }
+        } catch (SQLException e) {
+            return null;
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+            }
+        }
+
+        return entity;
+    }
+
+    @Override
+    public
+    @Nullable
+    Vehicle update(Vehicle entity) {
+        if (entity.getId() == 0) {
+            throw new InvalidParameterException("Can't update an entity that have no id value");
+        }
+
+        Connection connection = GlobalConnection.getConnection();
+        if (connection == null) {
+            throw new NoConnectionException();
+        }
+
+        PreparedStatement statement;
+        try {
+            statement = connection.prepareStatement(requestUpdate);
+            statement.setInt(1, entity.getOwner().getId());
+            statement.setInt(2, entity.getModel().getId());
+            statement.setString(3, entity.getLicencePlate());
+            statement.setLong(4, entity.getStartDate().toInstant().getEpochSecond());
+            statement.setInt(5, entity.getId());
+
+            int results = statement.executeUpdate();
+            if (results != 1) {
+                return null;
+            }
+        } catch (SQLException e) {
+            return null;
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+            }
+        }
+
+        return entity;
+    }
+
+    @Override
+    public boolean delete(Vehicle entity) {
+        if (entity.getId() == 0) {
+            throw new InvalidParameterException("Can't update an entity that have no id value");
+        }
+
+        return delete(entity.getId());
+    }
+
+    @Override
+    public boolean delete(int id) {
+        Connection connection = GlobalConnection.getConnection();
+        if (connection == null) {
+            throw new NoConnectionException();
+        }
+
+        PreparedStatement statement;
+        try {
+            statement = connection.prepareStatement(requestDelete);
+            statement.setInt(1, id);
+
+            int results = statement.executeUpdate();
+            if (results != 1) {
+                return false;
+            }
+        } catch (SQLException e) {
+            return false;
+        } finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+            }
+        }
+
+        return true;
+    }
+}
