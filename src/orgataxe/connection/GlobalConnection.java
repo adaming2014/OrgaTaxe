@@ -1,6 +1,7 @@
 package orgataxe.connection;
 
 import com.sun.istack.internal.Nullable;
+import util.OTLogger;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -50,7 +51,7 @@ public class GlobalConnection {
                 connection = createConnection();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            OTLogger.logError(e.getSQLState());
         }
 
         return connection;

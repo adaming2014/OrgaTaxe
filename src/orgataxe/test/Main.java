@@ -8,7 +8,7 @@ import orgataxe.entity.Owner;
 import orgataxe.entity.Type;
 import orgataxe.entity.Vehicle;
 
-import java.util.Date;
+import java.sql.Date;
 import java.util.List;
 
 /**
@@ -66,7 +66,7 @@ public class Main {
             System.out.println("    - Vehicle(id = " + vehicle.getId() + ", licence = " + vehicle.getLicencePlate() + ", startDate = " + vehicle.getStartDate() + ", owner = " + vehicle.getOwner().getFirstName() + ", model = " + vehicle.getModel().getDesignation());
         }
 
-        Vehicle vehicle1 = new Vehicle("00PPP75", new Date(), ownerResult, Type.LIGHT, modelResult1);
+        Vehicle vehicle1 = new Vehicle("00PPP75", new Date(0), ownerResult, modelResult1);
 
         System.out.println("Vehicle creation test :");
         Vehicle vehicleResult = daoVehicle.create(vehicle1);

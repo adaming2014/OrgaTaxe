@@ -1,0 +1,44 @@
+package orgataxe.gui;
+
+import orgataxe.database.DAOOwner;
+import orgataxe.database.DAOVehicle;
+import orgataxe.metier.IManagerOwner;
+import orgataxe.metier.IManagerVehicle;
+import orgataxe.metier.ManagerOwner;
+import orgataxe.metier.ManagerVehicle;
+import orgataxe.model.owner.OwnerTableColumnModel;
+import orgataxe.model.owner.OwnerTableModel;
+import orgataxe.model.vehicle.VehicleTableColumnModel;
+import orgataxe.model.vehicle.VehicleTableModel;
+
+import javax.swing.*;
+import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
+
+/**
+ * Created by INTI0221 on 12/08/2014.
+ */
+public class VehicleGui {
+    private VehicleForm vehicleForm1;
+    private JPanel panelVehicle;
+    private VehicleTable vehicleTable1;
+
+    public VehicleGui() {
+        IManagerVehicle managerVehicle = new ManagerVehicle(new DAOVehicle());
+
+        vehicleTable1.setManagerVehicle(managerVehicle);
+        vehicleTable1.setModels(new VehicleTableModel(), new VehicleTableColumnModel(vehicleTable1.getVehicleTable(), managerVehicle));
+        vehicleTable1.update();
+
+        vehicleForm1.setManagerVehicle(managerVehicle);
+        vehicleForm1.addTableModelListener(vehicleTable1);
+    }
+
+    public JPanel getMainPanel() {
+        return panelVehicle;
+    }
+
+    public void update() {
+        vehicleTable1.update();
+    }
+}

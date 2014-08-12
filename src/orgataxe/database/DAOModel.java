@@ -4,6 +4,7 @@ import com.sun.istack.internal.Nullable;
 import orgataxe.connection.GlobalConnection;
 import orgataxe.connection.NoConnectionException;
 import orgataxe.entity.Model;
+import util.OTLogger;
 
 import java.security.InvalidParameterException;
 import java.sql.Connection;
@@ -18,33 +19,27 @@ import java.util.List;
  */
 public class DAOModel extends DAOGeneric<Model> implements IDAOModel {
     private static final String TABLE_NAME = "model";
-    private static final String FIELD_ID = "id";
-    private static final String FIELD_WEIGHT = "weight";
-    private static final String FIELD_DESIGNATION = "designation";
-
     private final static String requestGetAll =
             "SELECT *"
                     + " FROM " + TABLE_NAME;
-
+    private static final String FIELD_ID = "id";
     private final static String requestGetById =
             "SELECT *"
                     + " FROM " + TABLE_NAME
                     + " WHERE " + FIELD_ID + " = ?";
-
+    private final static String requestMaxId =
+            "SELECT MAX(" + FIELD_ID + ") FROM " + TABLE_NAME;
+    private final static String requestDelete =
+            "DELETE FROM " + TABLE_NAME
+                    + " WHERE " + FIELD_ID + " = ?";
+    private static final String FIELD_WEIGHT = "weight";
+    private static final String FIELD_DESIGNATION = "designation";
     private final static String requestCreate =
             "INSERT INTO " + TABLE_NAME + " (" + FIELD_WEIGHT + ", " + FIELD_DESIGNATION + ")"
                     + " VALUES (?, ?)";
-
-    private final static String requestMaxId =
-            "SELECT MAX(" + FIELD_ID + ") FROM " + TABLE_NAME;
-
     private final static String requestUpdate =
             "UPDATE " + TABLE_NAME
                     + " SET " + FIELD_WEIGHT + " = ?, " + FIELD_DESIGNATION + " = ?"
-                    + " WHERE " + FIELD_ID + " = ?";
-
-    private final static String requestDelete =
-            "DELETE FROM " + TABLE_NAME
                     + " WHERE " + FIELD_ID + " = ?";
 
     @Override
@@ -65,11 +60,14 @@ public class DAOModel extends DAOGeneric<Model> implements IDAOModel {
                 models.add(new Model(Integer.valueOf(results.getInt(FIELD_ID)), Integer.valueOf(results.getString(FIELD_WEIGHT)), results.getString(FIELD_DESIGNATION)));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            OTLogger.logError(e.getSQLState());
+
+            return null;
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
+                OTLogger.logError(e.getSQLState());
             }
         }
 
@@ -96,14 +94,18 @@ public class DAOModel extends DAOGeneric<Model> implements IDAOModel {
             if (results.next()) {
                 model = new Model(results.getInt(FIELD_ID), results.getInt(FIELD_WEIGHT), results.getString(FIELD_DESIGNATION));
             } else {
+                OTLogger.logError("Query error " + statement.toString());
+
                 return null;
             }
         } catch (SQLException e) {
+            OTLogger.logError(e.getSQLState());
             return null;
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
+                OTLogger.logError(e.getSQLState());
             }
         }
 
@@ -127,6 +129,8 @@ public class DAOModel extends DAOGeneric<Model> implements IDAOModel {
 
             int results = statement.executeUpdate();
             if (results != 1) {
+                OTLogger.logError("Update error : " + statement.toString());
+
                 return null;
             }
 
@@ -136,14 +140,19 @@ public class DAOModel extends DAOGeneric<Model> implements IDAOModel {
             if (resultSet.next()) {
                 entity.setId(resultSet.getInt(1));
             } else {
+                OTLogger.logError("Query error : " + statement.toString());
+
                 return null;
             }
         } catch (SQLException e) {
+            OTLogger.logError(e.getSQLState());
+
             return null;
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
+                OTLogger.logError(e.getSQLState());
             }
         }
 
@@ -155,7 +164,9 @@ public class DAOModel extends DAOGeneric<Model> implements IDAOModel {
     @Nullable
     Model update(Model entity) {
         if (entity.getId() == 0) {
-            throw new InvalidParameterException("Can't update an entity that have no id value");
+            OTLogger.logError("Can't update a Model with no Id value");
+
+            throw new InvalidParameterException("Can't update a Model with no Id value");
         }
 
         Connection connection = GlobalConnection.getConnection();
@@ -172,14 +183,19 @@ public class DAOModel extends DAOGeneric<Model> implements IDAOModel {
 
             int results = statement.executeUpdate();
             if (results != 1) {
+                OTLogger.logError("Update error : " + statement.toString());
+
                 return null;
             }
         } catch (SQLException e) {
+            OTLogger.logError(e.getSQLState());
+
             return null;
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
+                OTLogger.logError(e.getSQLState());
             }
         }
 
@@ -189,7 +205,9 @@ public class DAOModel extends DAOGeneric<Model> implements IDAOModel {
     @Override
     public boolean delete(Model entity) {
         if (entity.getId() == 0) {
-            throw new InvalidParameterException("Can't update an entity that have no id value");
+            OTLogger.logError("Can't delete a Model with no Id value");
+
+            throw new InvalidParameterException("Can't delete a Model with no Id value");
         }
 
         return delete(entity.getId());
@@ -209,14 +227,19 @@ public class DAOModel extends DAOGeneric<Model> implements IDAOModel {
 
             int results = statement.executeUpdate();
             if (results != 1) {
+                OTLogger.logError("Update error : " + statement.toString());
+
                 return false;
             }
         } catch (SQLException e) {
+            OTLogger.logError(e.getSQLState());
+
             return false;
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
+                OTLogger.logError(e.getSQLState());
             }
         }
 

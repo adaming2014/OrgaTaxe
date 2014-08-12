@@ -13,17 +13,17 @@ public class Vehicle extends Entity {
     private Type type;
     private Model model;
 
-    public Vehicle(String licencePlate, Date startDate, Owner owner, Type type, Model model) {
-        this(0, licencePlate, startDate, owner, type, model);
+    public Vehicle(String licencePlate, Date startDate, Owner owner, Model model) {
+        this(0, licencePlate, startDate, owner, model);
     }
 
-    public Vehicle(int id, String licencePlate, Date startDate, Owner owner, Type type, Model model) {
+    public Vehicle(int id, String licencePlate, Date startDate, Owner owner, Model model) {
         super(id);
 
         this.licencePlate = licencePlate;
         this.startDate = startDate;
         this.owner = owner;
-        this.type = type;
+        this.type = Type.UNKNOW;
         this.model = model;
     }
 

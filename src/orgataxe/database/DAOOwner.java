@@ -4,6 +4,7 @@ import com.sun.istack.internal.Nullable;
 import orgataxe.connection.GlobalConnection;
 import orgataxe.connection.NoConnectionException;
 import orgataxe.entity.Owner;
+import util.OTLogger;
 
 import java.security.InvalidParameterException;
 import java.sql.Connection;
@@ -18,34 +19,28 @@ import java.util.List;
  */
 public class DAOOwner extends DAOGeneric<Owner> implements IDAOOwner {
     private static final String TABLE_NAME = "owner";
-    private static final String FIELD_ID = "id";
-    private static final String FIELD_FIRSTNAME = "first_name";
-    private static final String FIELD_FAMILYNAME = "family_name";
-    private static final String FIELD_ADDRESS = "address";
-
     private final static String requestGetAll =
             "SELECT *"
                     + " FROM " + TABLE_NAME;
-
+    private static final String FIELD_ID = "id";
     private final static String requestGetById =
             "SELECT *"
                     + " FROM " + TABLE_NAME
                     + " WHERE " + FIELD_ID + " = ?";
-
+    private final static String requestMaxId =
+            "SELECT MAX(" + FIELD_ID + ") FROM " + TABLE_NAME;
+    private final static String requestDelete =
+            "DELETE FROM " + TABLE_NAME
+                    + " WHERE " + FIELD_ID + " = ?";
+    private static final String FIELD_FIRSTNAME = "first_name";
+    private static final String FIELD_FAMILYNAME = "family_name";
+    private static final String FIELD_ADDRESS = "address";
     private final static String requestCreate =
             "INSERT INTO " + TABLE_NAME + " (" + FIELD_FIRSTNAME + ", " + FIELD_FAMILYNAME + ", " + FIELD_ADDRESS + ")"
                     + " VALUES (?, ?, ?)";
-
-    private final static String requestMaxId =
-            "SELECT MAX(" + FIELD_ID + ") FROM " + TABLE_NAME;
-
     private final static String requestUpdate =
             "UPDATE " + TABLE_NAME
                     + " SET " + FIELD_FIRSTNAME + " = ?, " + FIELD_FAMILYNAME + " = ?, " + FIELD_ADDRESS + " = ?"
-                    + " WHERE " + FIELD_ID + " = ?";
-
-    private final static String requestDelete =
-            "DELETE FROM " + TABLE_NAME
                     + " WHERE " + FIELD_ID + " = ?";
 
     @Override
@@ -66,11 +61,14 @@ public class DAOOwner extends DAOGeneric<Owner> implements IDAOOwner {
                 owners.add(new Owner(results.getInt(FIELD_ID), results.getString(FIELD_FIRSTNAME), results.getString(FIELD_FAMILYNAME), results.getString(FIELD_ADDRESS), null));
             }
         } catch (SQLException e) {
+            OTLogger.logError(e.getSQLState());
+
             e.printStackTrace();
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
+                OTLogger.logError(e.getSQLState());
             }
         }
 
@@ -97,14 +95,19 @@ public class DAOOwner extends DAOGeneric<Owner> implements IDAOOwner {
             if (results.next()) {
                 owner = new Owner(results.getInt(FIELD_ID), results.getString(FIELD_FIRSTNAME), results.getString(FIELD_FAMILYNAME), results.getString(FIELD_ADDRESS), null);
             } else {
+                OTLogger.logError("Query error : " + statement.toString());
+
                 return null;
             }
         } catch (SQLException e) {
+            OTLogger.logError(e.getSQLState());
+
             return null;
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
+                OTLogger.logError(e.getSQLState());
             }
         }
 
@@ -129,6 +132,8 @@ public class DAOOwner extends DAOGeneric<Owner> implements IDAOOwner {
 
             int results = statement.executeUpdate();
             if (results != 1) {
+                OTLogger.logError("Update error : " + statement.toString());
+
                 return null;
             }
 
@@ -138,14 +143,19 @@ public class DAOOwner extends DAOGeneric<Owner> implements IDAOOwner {
             if (resultSet.next()) {
                 entity.setId(resultSet.getInt(1));
             } else {
+                OTLogger.logError("Query error : " + statement.toString());
+
                 return null;
             }
         } catch (SQLException e) {
+            OTLogger.logError(e.getSQLState());
+
             return null;
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
+                OTLogger.logError(e.getSQLState());
             }
         }
 
@@ -157,7 +167,9 @@ public class DAOOwner extends DAOGeneric<Owner> implements IDAOOwner {
     @Nullable
     Owner update(Owner entity) {
         if (entity.getId() == 0) {
-            throw new InvalidParameterException("Can't update an entity that have no id value");
+            OTLogger.logError("Can't update an Owner with no Id value");
+
+            throw new InvalidParameterException("Can't update an Owner with no Id value");
         }
 
         Connection connection = GlobalConnection.getConnection();
@@ -175,14 +187,19 @@ public class DAOOwner extends DAOGeneric<Owner> implements IDAOOwner {
 
             int results = statement.executeUpdate();
             if (results != 1) {
+                OTLogger.logError("Update error : " + statement.toString());
+
                 return null;
             }
         } catch (SQLException e) {
+            OTLogger.logError(e.getSQLState());
+
             return null;
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
+                OTLogger.logError(e.getSQLState());
             }
         }
 
@@ -192,7 +209,9 @@ public class DAOOwner extends DAOGeneric<Owner> implements IDAOOwner {
     @Override
     public boolean delete(Owner entity) {
         if (entity.getId() == 0) {
-            throw new InvalidParameterException("Can't update an entity that have no id value");
+            OTLogger.logError("Can't delete an Owner with no Id value");
+
+            throw new InvalidParameterException("Can't delete an Owner with no Id value");
         }
 
         return delete(entity.getId());
@@ -212,14 +231,19 @@ public class DAOOwner extends DAOGeneric<Owner> implements IDAOOwner {
 
             int results = statement.executeUpdate();
             if (results != 1) {
+                OTLogger.logError("Update error : " + statement.toString());
+
                 return false;
             }
         } catch (SQLException e) {
+            OTLogger.logError(e.getSQLState());
+
             return false;
         } finally {
             try {
                 connection.close();
             } catch (SQLException e) {
+                OTLogger.logError(e.getSQLState());
             }
         }
 
