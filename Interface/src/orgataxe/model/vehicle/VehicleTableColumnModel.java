@@ -1,5 +1,6 @@
 package orgataxe.model.vehicle;
 
+import orgataxe.metier.IManagerTaxe;
 import orgataxe.metier.IManagerVehicle;
 
 import javax.swing.*;
@@ -15,9 +16,9 @@ public class VehicleTableColumnModel extends DefaultTableColumnModel {
     private TableCellRenderer renderer;
     private TableCellEditor editor;
 
-    public VehicleTableColumnModel(JTable table, IManagerVehicle managerVehicle) {
+    public VehicleTableColumnModel(JTable table, IManagerVehicle managerVehicle, IManagerTaxe managerTaxe) {
         renderer = new VehicleTableCellRenderer();
-        editor = new VehicleTableCellEditor(table, managerVehicle);
+        editor = new VehicleTableCellEditor(table, managerVehicle, managerTaxe);
 
         setColumnMargin(0);
     }

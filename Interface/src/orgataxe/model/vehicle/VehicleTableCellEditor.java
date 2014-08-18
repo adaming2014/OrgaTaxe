@@ -3,6 +3,7 @@ package orgataxe.model.vehicle;
 import orgataxe.entity.Vehicle;
 import orgataxe.gui.OrgaTaxeGui;
 import orgataxe.gui.TaxeTable;
+import orgataxe.metier.IManagerTaxe;
 import orgataxe.metier.IManagerVehicle;
 import orgataxe.model.taxe.TaxeTableModel;
 
@@ -32,10 +33,12 @@ public class VehicleTableCellEditor extends AbstractCellEditor implements TableC
 
     private boolean isActiveEditor;
     private IManagerVehicle managerVehicle;
+    private IManagerTaxe managerTaxe;
 
-    public VehicleTableCellEditor(JTable table, IManagerVehicle managerVehicle) {
+    public VehicleTableCellEditor(JTable table, IManagerVehicle managerVehicle, IManagerTaxe managerTaxe) {
         this.table = table;
         this.managerVehicle = managerVehicle;
+        this.managerTaxe = managerTaxe;
 
         panel = new JPanel();
         panel.setBorder(new EmptyBorder(0, 0, 0, 0));
@@ -113,7 +116,7 @@ public class VehicleTableCellEditor extends AbstractCellEditor implements TableC
 
             Vehicle vehicle = ((VehicleTableModel) table.getModel()).getVehicleAt(rowIndex);
 
-            OrgaTaxeGui.displayTaxeDialog(managerVehicle, vehicle);
+            OrgaTaxeGui.displayTaxeDialog(managerTaxe, vehicle);
         }
     }
 

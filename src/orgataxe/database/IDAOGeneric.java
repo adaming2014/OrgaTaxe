@@ -10,14 +10,16 @@ import java.util.List;
  */
 public interface IDAOGeneric<T extends Entity> {
     /**
-     * Return all entities.
+     * Returns all the entities.
+     * @return The entities. Null if error or not found.
      */
+    @Nullable
     List<T> getAll();
 
     /**
      * Return the entity if the provided id.
      * @param id The id of the entity.
-     * @return The entity found. Null if not found.
+     * @return The entity found. Null if error or not found.
      */
     @Nullable
     T getById(int id);

@@ -1,7 +1,10 @@
 package orgataxe.gui;
 
+import orgataxe.database.DAOModel;
+import orgataxe.database.DAOOwner;
+import orgataxe.database.DAOVehicle;
 import orgataxe.entity.Vehicle;
-import orgataxe.metier.IManagerVehicle;
+import orgataxe.metier.IManagerTaxe;
 import orgataxe.model.taxe.TaxeTableModel;
 
 import javax.swing.*;
@@ -15,9 +18,9 @@ import java.net.URL;
  * Created by INTI0221 on 11/08/2014.
  */
 public class OrgaTaxeGui {
-    private static OwnerGui ownerGui = new OwnerGui();
-    private static ModelGui modelGui = new ModelGui();
-    private static VehicleGui vehicleGui = new VehicleGui();
+    private static OwnerGui ownerGui = new OwnerGui(new DAOOwner());
+    private static ModelGui modelGui = new ModelGui(new DAOModel());
+    private static VehicleGui vehicleGui = new VehicleGui(new DAOVehicle());
 
     private static TaxeTable taxeTable = new TaxeTable();
     private static JDialog taxeDialog;
@@ -135,8 +138,8 @@ public class OrgaTaxeGui {
         frame.setJMenuBar(menuBar);
     }
 
-    public static void displayTaxeDialog(IManagerVehicle managerVehicle, Vehicle vehicle) {
-        taxeTable.update(managerVehicle, vehicle);
+    public static void displayTaxeDialog(IManagerTaxe managerTaxe, Vehicle vehicle) {
+        taxeTable.update(managerTaxe, vehicle);
         taxeDialog.setVisible(true);
     }
 }

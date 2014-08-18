@@ -4,6 +4,7 @@ import orgataxe.entity.Owner;
 import orgataxe.entity.Vehicle;
 import orgataxe.event.UpdateEvent;
 import orgataxe.metier.IManagerOwner;
+import orgataxe.metier.IManagerTaxe;
 import orgataxe.metier.IManagerVehicle;
 import orgataxe.model.owner.OwnerTableColumnModel;
 import orgataxe.model.owner.OwnerTableModel;
@@ -34,7 +35,7 @@ public class TaxeTable {
         return taxePanel;
     }
 
-    public void update(IManagerVehicle managerVehicle, Vehicle vehicle) {
+    public void update(IManagerTaxe managerTaxe, Vehicle vehicle) {
         Calendar calendar = new GregorianCalendar();
 
         int currentYear = calendar.get(Calendar.YEAR);
@@ -44,7 +45,7 @@ public class TaxeTable {
 
         taxeTableModel.removeRows();
         for (int year = startYear; year <= currentYear + 10; year++) {
-            taxeTableModel.addRow(year, managerVehicle.getTaxeAt(vehicle, year));
+            taxeTableModel.addRow(year, managerTaxe.getTaxeAt(vehicle, year));
         }
     }
 }

@@ -2,7 +2,6 @@ package orgataxe.database;
 
 import com.sun.istack.internal.Nullable;
 import orgataxe.connection.GlobalConnection;
-import orgataxe.connection.NoConnectionException;
 import orgataxe.entity.Model;
 import orgataxe.entity.Owner;
 import orgataxe.entity.Vehicle;
@@ -68,19 +67,14 @@ public class DAOVehicle extends DAOGeneric<Vehicle> implements IDAOVehicle {
                     + " WHERE " + FIELD_ID + " = ?";
 
     @Override
-    public List<Vehicle> getAll() {
-        Connection connection = GlobalConnection.getConnection();
-        if (connection == null) {
-            throw new NoConnectionException();
-        }
-
+    public
+    @Nullable
+    List<Vehicle> getAll() {
         List<Vehicle> vehicles = new ArrayList<>();
 
-        PreparedStatement statement;
-        try {
-            statement = connection.prepareStatement(requestGetAll);
-            ResultSet results = statement.executeQuery();
-
+        try (Connection connection = GlobalConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(requestGetAll);
+             ResultSet results = statement.executeQuery()) {
             while (results.next()) {
                 Owner owner = new Owner(Integer.valueOf(results.getInt(FIELD_OWNER_ID)), results.getString(FIELD_OWNER_FIRSTNAME), results.getString(FIELD_OWNER_FAMILYNAME), results.getString(FIELD_OWNER_ADDRESS), null);
                 Model model = new Model(Integer.valueOf(results.getInt(FIELD_MODEL_ID)), results.getInt(FIELD_MODEL_WEIGHT), results.getString(FIELD_MODEL_DESIGNATION));
@@ -90,12 +84,6 @@ public class DAOVehicle extends DAOGeneric<Vehicle> implements IDAOVehicle {
             OTLogger.logError(e.getSQLState());
 
             e.printStackTrace();
-        } finally {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                OTLogger.logError(e.getSQLState());
-            }
         }
 
         return vehicles;
@@ -105,38 +93,28 @@ public class DAOVehicle extends DAOGeneric<Vehicle> implements IDAOVehicle {
     public
     @Nullable
     Vehicle getById(int id) {
-        Connection connection = GlobalConnection.getConnection();
-        if (connection == null) {
-            throw new NoConnectionException();
-        }
-
         Vehicle vehicle = null;
-        PreparedStatement statement;
-        try {
-            statement = connection.prepareStatement(requestGetById);
+
+        try (Connection connection = GlobalConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(requestGetById)) {
+
             statement.setInt(1, id);
 
-            ResultSet results = statement.executeQuery();
+            try (ResultSet results = statement.executeQuery()) {
+                if (results.next()) {
+                    Owner owner = new Owner(Integer.valueOf(results.getInt(FIELD_OWNER_ID)), results.getString(FIELD_OWNER_FIRSTNAME), results.getString(FIELD_OWNER_FAMILYNAME), results.getString(FIELD_OWNER_ADDRESS), null);
+                    Model model = new Model(Integer.valueOf(results.getInt(FIELD_MODEL_ID)), results.getInt(FIELD_MODEL_WEIGHT), results.getString(FIELD_MODEL_DESIGNATION));
+                    vehicle = new Vehicle(Integer.valueOf(results.getInt(FIELD_ID)), results.getString(FIELD_LICENCE), results.getDate(FIELD_START_DATE), owner, model);
+                } else {
+                    OTLogger.logError("Query error : " + statement.toString());
 
-            if (results.next()) {
-                Owner owner = new Owner(Integer.valueOf(results.getInt(FIELD_OWNER_ID)), results.getString(FIELD_OWNER_FIRSTNAME), results.getString(FIELD_OWNER_FAMILYNAME), results.getString(FIELD_OWNER_ADDRESS), null);
-                Model model = new Model(Integer.valueOf(results.getInt(FIELD_MODEL_ID)), results.getInt(FIELD_MODEL_WEIGHT), results.getString(FIELD_MODEL_DESIGNATION));
-                vehicle = new Vehicle(Integer.valueOf(results.getInt(FIELD_ID)), results.getString(FIELD_LICENCE), results.getDate(FIELD_START_DATE), owner, model);
-            } else {
-                OTLogger.logError("Query error : " + statement.toString());
-
-                return null;
+                    return null;
+                }
             }
         } catch (SQLException e) {
             OTLogger.logError(e.getSQLState());
 
             return null;
-        } finally {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                OTLogger.logError(e.getSQLState());
-            }
         }
 
         return vehicle;
@@ -146,46 +124,37 @@ public class DAOVehicle extends DAOGeneric<Vehicle> implements IDAOVehicle {
     public
     @Nullable
     Vehicle create(Vehicle entity) {
-        Connection connection = GlobalConnection.getConnection();
-        if (connection == null) {
-            throw new NoConnectionException();
-        }
+        try (Connection connection = GlobalConnection.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(requestCreate)) {
 
-        PreparedStatement statement;
-        try {
-            statement = connection.prepareStatement(requestCreate);
-            statement.setInt(1, entity.getOwner().getId());
-            statement.setInt(2, entity.getModel().getId());
-            statement.setString(3, entity.getLicencePlate());
-            statement.setDate(4, new java.sql.Date(entity.getStartDate().getTime()));
+                statement.setInt(1, entity.getOwner().getId());
+                statement.setInt(2, entity.getModel().getId());
+                statement.setString(3, entity.getLicencePlate());
+                statement.setDate(4, new java.sql.Date(entity.getStartDate().getTime()));
 
-            int results = statement.executeUpdate();
-            if (results != 1) {
-                OTLogger.logError("Update error : " + statement.toString());
+                int results = statement.executeUpdate();
+                if (results != 1) {
+                    OTLogger.logError("Update error : " + statement.toString());
 
-                return null;
+                    return null;
+                }
             }
 
-            statement = connection.prepareStatement(requestMaxId);
-            ResultSet resultSet = statement.executeQuery();
+            try (PreparedStatement statement = connection.prepareStatement(requestMaxId);
+                 ResultSet resultSet = statement.executeQuery()) {
 
-            if (resultSet.next()) {
-                entity.setId(resultSet.getInt(1));
-            } else {
-                OTLogger.logError("Query error : " + statement.toString());
+                if (resultSet.next()) {
+                    entity.setId(resultSet.getInt(1));
+                } else {
+                    OTLogger.logError("Query error : " + statement.toString());
 
-                return null;
+                    return null;
+                }
             }
         } catch (SQLException e) {
             OTLogger.logError(e.getSQLState());
 
             return null;
-        } finally {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                OTLogger.logError(e.getSQLState());
-            }
         }
 
         return entity;
@@ -201,14 +170,9 @@ public class DAOVehicle extends DAOGeneric<Vehicle> implements IDAOVehicle {
             throw new InvalidParameterException("Can't update a Vehicle with no Id value");
         }
 
-        Connection connection = GlobalConnection.getConnection();
-        if (connection == null) {
-            throw new NoConnectionException();
-        }
+        try (Connection connection = GlobalConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(requestUpdate)) {
 
-        PreparedStatement statement;
-        try {
-            statement = connection.prepareStatement(requestUpdate);
             statement.setInt(1, entity.getOwner().getId());
             statement.setInt(2, entity.getModel().getId());
             statement.setString(3, entity.getLicencePlate());
@@ -225,12 +189,6 @@ public class DAOVehicle extends DAOGeneric<Vehicle> implements IDAOVehicle {
             OTLogger.logError(e.getSQLState());
 
             return null;
-        } finally {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                OTLogger.logError(e.getSQLState());
-            }
         }
 
         return entity;
@@ -249,14 +207,9 @@ public class DAOVehicle extends DAOGeneric<Vehicle> implements IDAOVehicle {
 
     @Override
     public boolean delete(int id) {
-        Connection connection = GlobalConnection.getConnection();
-        if (connection == null) {
-            throw new NoConnectionException();
-        }
+        try (Connection connection = GlobalConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(requestDelete)) {
 
-        PreparedStatement statement;
-        try {
-            statement = connection.prepareStatement(requestDelete);
             statement.setInt(1, id);
 
             int results = statement.executeUpdate();
@@ -269,12 +222,6 @@ public class DAOVehicle extends DAOGeneric<Vehicle> implements IDAOVehicle {
             OTLogger.logError(e.getSQLState());
 
             return false;
-        } finally {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                OTLogger.logError(e.getSQLState());
-            }
         }
 
         return true;

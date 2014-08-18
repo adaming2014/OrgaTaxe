@@ -2,10 +2,8 @@ package orgataxe.gui;
 
 import orgataxe.database.DAOOwner;
 import orgataxe.database.DAOVehicle;
-import orgataxe.metier.IManagerOwner;
-import orgataxe.metier.IManagerVehicle;
-import orgataxe.metier.ManagerOwner;
-import orgataxe.metier.ManagerVehicle;
+import orgataxe.database.IDAOVehicle;
+import orgataxe.metier.*;
 import orgataxe.model.owner.OwnerTableColumnModel;
 import orgataxe.model.owner.OwnerTableModel;
 import orgataxe.model.vehicle.VehicleTableColumnModel;
@@ -23,11 +21,12 @@ public class VehicleGui {
     private JPanel panelVehicle;
     private VehicleTable vehicleTable1;
 
-    public VehicleGui() {
-        IManagerVehicle managerVehicle = new ManagerVehicle(new DAOVehicle());
+    public VehicleGui(IDAOVehicle daoVehicle) {
+        IManagerVehicle managerVehicle = new ManagerVehicle(daoVehicle);
+        IManagerTaxe managerTaxe = new ManagerTaxe();
 
         vehicleTable1.setManagerVehicle(managerVehicle);
-        vehicleTable1.setModels(new VehicleTableModel(), new VehicleTableColumnModel(vehicleTable1.getVehicleTable(), managerVehicle));
+        vehicleTable1.setModels(new VehicleTableModel(), new VehicleTableColumnModel(vehicleTable1.getVehicleTable(), managerVehicle, managerTaxe));
         vehicleTable1.update();
 
         vehicleForm1.setManagerVehicle(managerVehicle);
@@ -40,5 +39,6 @@ public class VehicleGui {
 
     public void update() {
         vehicleTable1.update();
+        vehicleForm1.resetFields();
     }
 }

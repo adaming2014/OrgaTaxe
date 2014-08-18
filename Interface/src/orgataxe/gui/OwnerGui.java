@@ -1,5 +1,6 @@
 package orgataxe.gui;
 
+import orgataxe.database.IDAOOwner;
 import orgataxe.model.owner.OwnerTableColumnModel;
 import orgataxe.model.owner.OwnerTableModel;
 import orgataxe.database.DAOOwner;
@@ -16,8 +17,8 @@ public class OwnerGui {
     private OwnerForm ownerForm1;
     private OwnerTable ownerTable1;
 
-    public OwnerGui() {
-        IManagerOwner managerOwner = new ManagerOwner(new DAOOwner());
+    public OwnerGui(IDAOOwner daoOwner) {
+        IManagerOwner managerOwner = new ManagerOwner(daoOwner);
 
         ownerTable1.setManagerOwner(managerOwner);
         ownerTable1.setModels(new OwnerTableModel(), new OwnerTableColumnModel(ownerTable1.getOwnerTable(), managerOwner));

@@ -1,5 +1,6 @@
 package orgataxe.gui;
 
+import orgataxe.database.IDAOModel;
 import orgataxe.model.model.ModelTableModel;
 import orgataxe.database.DAOModel;
 import orgataxe.metier.IManagerModel;
@@ -16,8 +17,8 @@ public class ModelGui {
     private JPanel panel1;
     private ModelTable modelTable1;
 
-    public ModelGui() {
-        IManagerModel managerModel = new ManagerModel(new DAOModel());
+    public ModelGui(IDAOModel daoModel) {
+        IManagerModel managerModel = new ManagerModel(daoModel);
         ModelTableModel modelTableModel = new ModelTableModel();
 
         modelTable1.setManagerModel(managerModel);

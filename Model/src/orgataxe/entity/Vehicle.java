@@ -10,7 +10,6 @@ public class Vehicle extends Entity {
     private Date startDate;
 
     private Owner owner;
-    private Type type;
     private Model model;
 
     public Vehicle(String licencePlate, Date startDate, Owner owner, Model model) {
@@ -23,7 +22,6 @@ public class Vehicle extends Entity {
         this.licencePlate = licencePlate;
         this.startDate = startDate;
         this.owner = owner;
-        this.type = Type.UNKNOW;
         this.model = model;
     }
 
@@ -49,14 +47,6 @@ public class Vehicle extends Entity {
 
     public void setOwner(Owner owner) {
         this.owner = owner;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
     }
 
     public Model getModel() {
